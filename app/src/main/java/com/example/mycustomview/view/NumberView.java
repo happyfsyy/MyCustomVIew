@@ -10,6 +10,8 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.graphics.Paint.FontMetrics;
+import android.graphics.Paint.FontMetricsInt;
 
 import com.example.mycustomview.R;
 import com.example.mycustomview.utils.DisplayUtil;
@@ -21,7 +23,8 @@ public class NumberView extends View {
     private int numberColor;
     private int numberTextSize;
     private Paint mPaint;
-    private Rect mBound;
+    private float mWidth;
+    private float mHeight;
 
     private static final String TAG = "NumberView";
 
@@ -68,27 +71,18 @@ public class NumberView extends View {
 
         mPaint=new Paint();
         mPaint.setTextSize(numberTextSize);
-        mBound=new Rect();
+        Rect mBound=new Rect();
         mPaint.getTextBounds(numberText,0,numberText.length(),mBound);
 
-        this.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                numberText=randomText();
-                postInvalidate();
-            }
-        });
+        mWidth=mPaint.measureText(numberText);
+        Log.e(TAG,"mBound.width(): "+mBound.width());
+        Log.e(TAG,"mPaint.measureText(): "+mWidth);
+
+        FontMetrics fontMetrics=mPaint.getFontMetrics();
+        //在Top，ascent，bottom，descent画线
+        mHeight=fontMetrics.bottom-fontMetrics.top;
     }
 
-    private String randomText(){
-        Random random=new Random();
-        StringBuilder stringBuilder=new StringBuilder();
-        for(int i=0;i<4;i++){
-            int a=random.nextInt(10);
-            stringBuilder.append(a);
-        }
-        return stringBuilder.toString();
-    }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -100,28 +94,50 @@ public class NumberView extends View {
         if(widthMode==MeasureSpec.EXACTLY){
             width=widthSize;
         }else{
-            int textWidth=(int)mPaint.measureText(numberText);
-            width=getPaddingLeft()+textWidth+getPaddingRight();
+            width=getPaddingLeft()+(int)mWidth+getPaddingRight();
         }
         if(heightMode==MeasureSpec.EXACTLY){
             height=heightSize;
         }else{
-            int textHeight=mBound.height();
-            height=getPaddingTop()+textHeight+getPaddingBottom();
+            height=getPaddingTop()+(int)mHeight+getPaddingBottom();
         }
         setMeasuredDimension(width,height);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        mPaint.setColor(Color.YELLOW);
-        canvas.drawRect(0,0,getWidth(),getHeight(),mPaint);
-        int distance=mBound.top+mBound.bottom;
-        float offset=(float)(distance*1.0/2);
-        float y=getHeight()/2-offset;
+
         mPaint.setColor(numberColor);
-        Log.e(TAG,"strokeWidth: "+mPaint.getStrokeWidth());
-        canvas.drawText(numberText,getWidth()/2-mPaint.measureText(numberText)/2,
+
+
+        FontMetrics fontMetrics=mPaint.getFontMetrics();
+        float y=getHeight()/2-fontMetrics.descent+(fontMetrics.bottom-fontMetrics.top)/2;
+        Log.e(TAG,"ascent: "+fontMetrics.ascent);
+        Log.e(TAG,"descent: "+fontMetrics.descent);
+        Log.e(TAG,"top: "+fontMetrics.top);
+        Log.e(TAG,"bottom: "+fontMetrics.bottom);
+
+
+        float y1=getHeight()/2-(fontMetrics.descent+fontMetrics.ascent)/2;
+        Log.e(TAG,"baseline: "+y);
+        Log.e(TAG,"y1: "+y1);
+
+        canvas.drawText(numberText,getWidth()/2-mWidth/2,
                 y,mPaint);
+        mPaint.setColor(Color.RED);
+        mPaint.setStrokeWidth(1);
+        float ascent=fontMetrics.ascent+y;
+        canvas.drawLine(0,ascent,getWidth(),ascent,mPaint);
+        mPaint.setColor(Color.YELLOW);
+        float top=fontMetrics.top+y;
+        canvas.drawLine(0,top,getWidth(),top,mPaint);
+
+        mPaint.setColor(Color.MAGENTA);
+        float descent=fontMetrics.descent+y;
+        canvas.drawLine(0,descent,getWidth(),descent,mPaint);
+
+        mPaint.setColor(Color.BLUE);
+        float bottom=fontMetrics.bottom+y;
+        canvas.drawLine(0,bottom,getWidth(),bottom,mPaint);
     }
 }
