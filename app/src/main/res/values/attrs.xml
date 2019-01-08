@@ -19,11 +19,22 @@
             <enum name="fitCenter" value="1"/>
         </attr>
     </declare-styleable>
-    
+
+    <attr name="firstColor" format="color"/>
+    <attr name="secondColor" format="color"/>
     <declare-styleable name="CircularRingView">
-        <attr name="firstColor" format="color"/>
-        <attr name="secondColor" format="color"/>
+        <attr name="firstColor"/>
+        <attr name="secondColor"/>
         <attr name="speed" format="integer"/>
         <attr name="ringWidth" format="dimension"/>
+    </declare-styleable>
+
+    <declare-styleable name="VolumeControlView">
+        <attr name="firstColor" />
+        <attr name="secondColor"/>
+        <attr name="dotWidth" format="dimension"/>
+        <attr name="dotCount" format="integer"/>
+        <attr name="splitSize" format="integer"/>
+        <attr name="bgImage" format="reference"/>
     </declare-styleable>
 </resources>
