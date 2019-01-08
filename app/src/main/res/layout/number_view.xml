@@ -20,7 +20,9 @@
             android:textSize="25sp"
             android:text="@string/test_number2"
             android:background="@color/numberBackground"
-            android:layout_marginStart="5dp"/>
+            android:layout_marginStart="5dp"
+            android:paddingLeft="5dp"
+            android:paddingRight="10dp"/>
     </LinearLayout>
     <com.example.mycustomview.view.MyTextView
         android:id="@+id/textView1"
@@ -29,6 +31,6 @@
         android:textSize="25sp"
         android:text="@string/test_number2"
         android:background="@color/numberBackground"
-        />
+        android:layout_marginTop="5dp"/>
 
 </LinearLayout>

@@ -8,8 +8,8 @@ import android.widget.TextView;
 
 import com.example.mycustomview.R;
 
-public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MainActivity";
+public class NumberViewAct extends AppCompatActivity {
+    private static final String TAG = "NumberViewAct";
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

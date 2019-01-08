@@ -9,4 +9,16 @@
         <attr name="numberColor"/>
         <attr name="numberText"/>
     </declare-styleable>
+
+
+    <declare-styleable name="ImageIntroView">
+        <attr name="android:text"/>
+        <attr name="introTextSize" format="dimension"/>
+        <attr name="introTextColor" format="color"/>
+        <attr name="imageSrc" format="reference"/>
+        <attr name="imageScaleType">
+            <enum name="fitXY" value="0"/>
+            <enum name="fitCenter" value="1"/>
+        </attr>
+    </declare-styleable>
 </resources>

@@ -79,8 +79,9 @@ public class NumberView extends View {
         Log.e(TAG,"mPaint.measureText(): "+mWidth);
 
         FontMetrics fontMetrics=mPaint.getFontMetrics();
-        //在Top，ascent，bottom，descent画线
         mHeight=fontMetrics.bottom-fontMetrics.top;
+        Log.e(TAG,"mBound.height(): "+mBound.height());
+        Log.e(TAG,"mPaint.fontHeight(): "+mHeight);
     }
 
 
@@ -99,7 +100,7 @@ public class NumberView extends View {
         if(heightMode==MeasureSpec.EXACTLY){
             height=heightSize;
         }else{
-            height=getPaddingTop()+(int)mHeight+getPaddingBottom();
+            height=getPaddingTop()+(int)(mHeight+0.5)+getPaddingBottom();
         }
         setMeasuredDimension(width,height);
     }
@@ -111,16 +112,17 @@ public class NumberView extends View {
 
 
         FontMetrics fontMetrics=mPaint.getFontMetrics();
-        float y=getHeight()/2-fontMetrics.descent+(fontMetrics.bottom-fontMetrics.top)/2;
+        float y=(float)(getHeight()*1.0/2)-fontMetrics.descent+(float)((fontMetrics.bottom-fontMetrics.top)*1.0/2);
         Log.e(TAG,"ascent: "+fontMetrics.ascent);
         Log.e(TAG,"descent: "+fontMetrics.descent);
         Log.e(TAG,"top: "+fontMetrics.top);
         Log.e(TAG,"bottom: "+fontMetrics.bottom);
+        Log.e(TAG,"height: "+getHeight());
 
 
         float y1=getHeight()/2-fontMetrics.descent+(fontMetrics.descent-fontMetrics.ascent)/2;
         Log.e(TAG,"baseline: "+y);
-        Log.e(TAG,"y1: "+y1);
+        Log.e(TAG,"y1: "+y);
 
         canvas.drawText(numberText,getWidth()/2-mWidth/2,
                 y,mPaint);

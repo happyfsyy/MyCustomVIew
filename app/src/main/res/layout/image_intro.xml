@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.example.mycustomview.view.ImageIntroView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/image_intro"
+        custom:introTextColor="@color/colorAccent"
+        custom:imageScaleType="fitCenter"
+        custom:imageSrc="@drawable/nav_icon"
+        custom:introTextSize="20sp"
+        android:padding="10dp"/>
+    <com.example.mycustomview.view.ImageIntroView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/image_intro"
+        custom:introTextColor="@color/colorPrimary"
+        custom:imageScaleType="fitCenter"
+        custom:imageSrc="@drawable/ic_launcher"
+        custom:introTextSize="20sp"
+        />
+    <com.example.mycustomview.view.ImageIntroView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/image_intro"
+        custom:introTextColor="@color/colorPrimary"
+        custom:imageScaleType="fitXY"
+        custom:imageSrc="@drawable/img1"
+        custom:introTextSize="20sp"
+        />
+
+</LinearLayout>
