@@ -118,26 +118,26 @@ public class NumberView extends View {
         Log.e(TAG,"bottom: "+fontMetrics.bottom);
 
 
-        float y1=getHeight()/2-(fontMetrics.descent+fontMetrics.ascent)/2;
+        float y1=getHeight()/2-fontMetrics.descent+(fontMetrics.descent-fontMetrics.ascent)/2;
         Log.e(TAG,"baseline: "+y);
         Log.e(TAG,"y1: "+y1);
 
         canvas.drawText(numberText,getWidth()/2-mWidth/2,
                 y,mPaint);
-        mPaint.setColor(Color.RED);
-        mPaint.setStrokeWidth(1);
-        float ascent=fontMetrics.ascent+y;
-        canvas.drawLine(0,ascent,getWidth(),ascent,mPaint);
-        mPaint.setColor(Color.YELLOW);
-        float top=fontMetrics.top+y;
-        canvas.drawLine(0,top,getWidth(),top,mPaint);
-
-        mPaint.setColor(Color.MAGENTA);
-        float descent=fontMetrics.descent+y;
-        canvas.drawLine(0,descent,getWidth(),descent,mPaint);
-
-        mPaint.setColor(Color.BLUE);
-        float bottom=fontMetrics.bottom+y;
-        canvas.drawLine(0,bottom,getWidth(),bottom,mPaint);
+//        mPaint.setColor(Color.RED);
+//        mPaint.setStrokeWidth(1);
+//        float ascent=fontMetrics.ascent+y;
+//        canvas.drawLine(0,ascent,getWidth(),ascent,mPaint);
+//        mPaint.setColor(Color.YELLOW);
+//        float top=fontMetrics.top+y;
+//        canvas.drawLine(0,top,getWidth(),top,mPaint);
+//
+//        mPaint.setColor(Color.MAGENTA);
+//        float descent=fontMetrics.descent+y;
+//        canvas.drawLine(0,descent,getWidth(),descent,mPaint);
+//
+//        mPaint.setColor(Color.BLUE);
+//        float bottom=fontMetrics.bottom+y;
+//        canvas.drawLine(0,bottom,getWidth(),bottom,mPaint);
     }
 }

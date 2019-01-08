@@ -10,25 +10,25 @@
         <com.example.mycustomview.view.NumberView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:numberText="@string/test_number"
+            app:numberText="@string/test_number2"
             app:numberSize="25sp"
-            android:background="#ffffff"
-            android:padding="10dp"/>
+            android:background="@color/numberBackground"
+            />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="25sp"
-            android:text="@string/test_number"
+            android:text="@string/test_number2"
             android:background="@color/numberBackground"
             android:layout_marginStart="5dp"/>
     </LinearLayout>
-    <TextView
+    <com.example.mycustomview.view.MyTextView
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="25sp"
-        android:text="@string/test_number"
+        android:text="@string/test_number2"
         android:background="@color/numberBackground"
-        android:layout_marginTop="5dp"/>
+        />
 
 </LinearLayout>
