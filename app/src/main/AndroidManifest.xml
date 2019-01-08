@@ -12,6 +12,8 @@
         <activity android:name=".activity.NumberViewAct">
         </activity>
         <activity android:name=".activity.ImageIntroAct">
+        </activity>
+        <activity android:name=".activity.CircularRingAct">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
