@@ -17,4 +17,13 @@
         <item name="android:gravity">center</item>
     </style>
 
+    <style name="DragTextItem">
+        <item name="android:layout_width">100dp</item>
+        <item name="android:layout_height">100dp</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:background">#44ff0000</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:gravity">center</item>
+    </style>
+
 </resources>

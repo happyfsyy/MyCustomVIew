@@ -20,6 +20,12 @@
 
         </activity>
         <activity android:name=".activity.FourItemsViewGroupAct">
+
+        </activity>
+        <activity android:name=".activity.ViewDragHelperAct">
+
+        </activity>
+        <activity android:name=".activity.DeepVDHLayoutAct">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

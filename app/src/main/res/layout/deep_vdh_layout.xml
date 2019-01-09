@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.example.mycustomview.viewgroup.DeepVDHLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <TextView
+        style="@style/DragTextItem"
+        android:text="I can be dragged"
+        android:layout_margin="10dp"
+        android:clickable="true"/>
+    <TextView
+        style="@style/DragTextItem"
+        android:text="I will back to origin pos"
+        android:layout_margin="10dp"/>
+    <TextView
+        style="@style/DragTextItem"
+        android:text="use edge tracker to operate me"
+        android:layout_margin="10dp"/>
+</com.example.mycustomview.viewgroup.DeepVDHLayout>
