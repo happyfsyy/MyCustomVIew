@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.example.mycustomview.viewgroup.FourItemsViewGroup
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="#888888">
+    <TextView
+        style="@style/SquareTextItem"
+        android:text="0"
+        android:background="#ff0000"
+        android:layout_margin="10dp"/>
+    <TextView
+        style="@style/SquareTextItem"
+        android:text="1"
+        android:background="#00ff00"/>
+    <TextView
+        style="@style/SquareTextItem"
+        android:text="2"
+        android:background="#0000ff"/>
+    <TextView
+        style="@style/SquareTextItem"
+        android:text="3"
+        android:background="#ffff00"/>
+</com.example.mycustomview.viewgroup.FourItemsViewGroup>
