@@ -26,6 +26,9 @@
 
         </activity>
         <activity android:name=".activity.DeepVDHLayoutAct">
+
+        </activity>
+        <activity android:name=".activity.FlowLayoutAct">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.example.mycustomview.viewgroup.FlowLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="300dp"
+    android:layout_height="wrap_content">
+    <TextView
+        android:text="hello"
+        style="@style/FlowTextItem"/>
+    <TextView
+        android:text="hello1"
+        style="@style/FlowTextItem"/>
+    <TextView
+        android:text="hello2"
+        style="@style/FlowTextItem"/>
+    <TextView
+        android:text="hello3"
+        style="@style/FlowTextItem"/>
+    <TextView
+        android:text="hello4"
+        style="@style/FlowTextItem"/>
+    <TextView
+        android:text="hello5"
+        style="@style/FlowTextItem"/>
+    <TextView
+        android:text="hello6"
+        style="@style/FlowTextItem"/>
+    <TextView
+        android:text="hello7"
+        style="@style/FlowTextItem"/>
+    <TextView
+        android:text="hello8"
+        style="@style/FlowTextItem"/>
+    <TextView
+        android:text="hello9"
+        style="@style/FlowTextItem"/>
+    <TextView
+        android:text="hello10"
+        style="@style/FlowTextItem"/>
+</com.example.mycustomview.viewgroup.FlowLayout>

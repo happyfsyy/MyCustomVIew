@@ -20,7 +20,7 @@ public class ViewDragHelperLayout extends LinearLayout {
              * 返回true表示可以捕获该view，你可以根据传入的第一个参数决定哪些可以捕获。
              */
             @Override
-            public boolean tryCaptureView(@NonNull View view, int i) {
+            public boolean tryCaptureView(@NonNull View child, int pointerId) {
                 return true;
             }
 

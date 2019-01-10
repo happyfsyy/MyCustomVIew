@@ -4,5 +4,5 @@
     <string name="test_number2">Loading</string>
     <string name="image_intro">PJpqpqPJ</string>
     <string name="image_intro2">hellohellohellohellohellohellohellohellohello</string>
-
+    <string name="tag_number">第%d个</string>
 </resources>
