@@ -1,6 +1,7 @@
 package com.example.mycustomview.viewgroup;
 
 import android.content.Context;
+import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -9,6 +10,8 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
+
+import javax.xml.validation.Validator;
 
 public class SlidingLayout extends RelativeLayout implements View.OnTouchListener {
     /**
@@ -88,7 +91,7 @@ public class SlidingLayout extends RelativeLayout implements View.OnTouchListene
             Log.e(TAG,"super()之后，Changed为true");
             leftLayout=getChildAt(0);
             leftLayoutParams=(MarginLayoutParams)leftLayout.getLayoutParams();
-            //这里是改的，leftEdge，原本为rightEdge？？？？？？？？？？？？？？？？
+
             rightEdge=-leftLayoutParams.width;
             rightLayout=getChildAt(1);
             rightLayoutParams=(MarginLayoutParams)leftLayout.getLayoutParams();
@@ -118,10 +121,9 @@ public class SlidingLayout extends RelativeLayout implements View.OnTouchListene
                         &&(isSliding||Math.abs(distanceY)<=touchSlop)){
                     isSliding=true;
                     rightLayoutParams.rightMargin=-moveDistanceX;
-                    //这里为什么？？？？？？？？？？？？？？？？？？？？？？？
-                    //这里我改了，改rightLayout的右侧布局，rightMargin的最右边界
-                    if(rightLayoutParams.rightMargin<leftEdge){
-                        rightLayoutParams.rightMargin=leftEdge;
+                    //与下一段的位置颠倒过来
+                    if(rightLayoutParams.rightMargin<rightEdge){
+                        rightLayoutParams.rightMargin=rightEdge;
                     }
                     rightLayout.setLayoutParams(rightLayoutParams);
                 }
@@ -129,20 +131,128 @@ public class SlidingLayout extends RelativeLayout implements View.OnTouchListene
                         &&(isSliding||Math.abs(distanceY)<=touchSlop)){
                     isSliding=true;
                     rightLayoutParams.rightMargin=rightEdge-moveDistanceX;
-
-
-
-
-
-
-
+                    //与上一段的代码颠倒过来
+                    if(rightLayoutParams.rightMargin>leftEdge){
+                        rightLayoutParams.rightMargin=leftEdge;
+                    }
+                    rightLayout.setLayoutParams(rightLayoutParams);
                 }
                 break;
             case MotionEvent.ACTION_UP:
+                xUp=event.getRawX();
+                int upDistanceX=(int)(xUp-xDown);
+                if(isSliding){
+                    if(wantToShowLeftLayout()){
+                        if(shouldScrollToLeftLayout()){
+                            scrollToLeftLayout();
+                        }else{
+                            scrollToRightLayout();
+                        }
+                    }else if(wantToShowRightLayout()){
+                        if(shouldScrollToRightLayout()){
+                            scrollToRightLayout();
+                        }else{
+                            scrollToLeftLayout();
+                        }
+                    }
+                }else if(upDistanceX<touchSlop&&isLeftLayoutVisible){
+                    //这个if的作用是什么？
+                    scrollToRightLayout();
+                }
+                recycleVelocityTracker();
                 break;
         }
+        if(v.isEnabled()){
+            if(isSliding){
+                unFocusBindView();
+                return true;
+            }
+            if(isLeftLayoutVisible){
+                return true;
+            }
+            return false;
+        }
+        return true;
+    }
 
-        return false;
+    class ScrollTask extends AsyncTask<Integer,Integer,Integer>{
+        @Override
+        protected Integer doInBackground(Integer... integers) {
+            int speed=integers[0];
+            int rightMargin=rightLayoutParams.rightMargin;
+            while(true){
+                rightMargin+=speed;
+                if(rightMargin>leftEdge){
+                    rightMargin=leftEdge;
+                    break;
+                }
+                if(rightMargin<rightEdge){
+                    rightMargin=rightEdge;
+                    break;
+                }
+                publishProgress(rightMargin);
+                try{
+                    Thread.sleep(20);
+                }catch (InterruptedException e){
+                    e.printStackTrace();
+                }
+            }
+            if(speed>0){
+                isLeftLayoutVisible=false;
+            }else{
+                isLeftLayoutVisible=true;
+            }
+            isSliding=false;
+            return rightMargin;
+        }
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            rightLayoutParams.rightMargin=values[0];
+            rightLayout.setLayoutParams(rightLayoutParams);
+            unFocusBindView();
+        }
+        @Override
+        protected void onPostExecute(Integer result) {
+            rightLayoutParams.rightMargin=result;
+            rightLayout.setLayoutParams(rightLayoutParams);
+        }
+    }
+
+    private void unFocusBindView(){
+        if(mBindView!=null){
+            mBindView.setPressed(false);
+            mBindView.setFocusable(false);
+            mBindView.setFocusableInTouchMode(false);
+        }
+    }
+
+    private boolean wantToShowLeftLayout(){
+        return xUp-xDown>0&&!isLeftLayoutVisible;
+    }
+    private boolean wantToShowRightLayout(){
+        return xUp-xDown<0&&isLeftLayoutVisible;
+    }
+    private boolean shouldScrollToLeftLayout(){
+        return xUp-xDown>leftLayoutParams.width/2&&getScrollVelocity()>SNAP_VELOCITY;
+    }
+    private boolean shouldScrollToRightLayout(){
+        return xDown-xUp>leftLayoutParams.width/2&&getScrollVelocity()>SNAP_VELOCITY;
+    }
+    private void scrollToLeftLayout(){
+
+    }
+    private void scrollToRightLayout(){
+
+    }
+
+    private int getScrollVelocity(){
+        mVelocityTracker.computeCurrentVelocity(1000);
+        int velocity=(int)mVelocityTracker.getXVelocity();
+        return Math.abs(velocity);
+    }
+    private void recycleVelocityTracker(){
+        mVelocityTracker.recycle();
+        mVelocityTracker=null;
     }
 
     private void createVelocityTracker(MotionEvent event){
