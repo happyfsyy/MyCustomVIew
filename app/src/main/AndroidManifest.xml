@@ -29,6 +29,9 @@
 
         </activity>
         <activity android:name=".activity.FlowLayoutAct">
+
+        </activity>
+        <activity android:name=".activity.RenRenSlideAct">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
