@@ -8,10 +8,7 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.WindowManager;
 import android.widget.RelativeLayout;
-
-import javax.xml.validation.Validator;
 
 public class SlidingLayout extends RelativeLayout implements View.OnTouchListener {
     /**
@@ -40,7 +37,7 @@ public class SlidingLayout extends RelativeLayout implements View.OnTouchListene
      * 判断左侧布局当前是显示还是隐藏。只有完全显示或隐藏时才会更改此值，
      * 滑动过程中此值无效。
      */
-    private boolean isLeftLayoutVisible;
+    private boolean isLeftLayoutVisible=false;
     /**
      * 判断是否正在滑动
      */
@@ -79,40 +76,52 @@ public class SlidingLayout extends RelativeLayout implements View.OnTouchListene
         mBindView.setOnTouchListener(this);
     }
 
+    public boolean isLeftLayoutVisible(){
+        return isLeftLayoutVisible;
+    }
+
+    /**
+     * 这个方法是用来使用childView.layout(l,t,r,b)的。
+     * <p>没Move的时候，rightLayout的margin改变的时候，都会调用这个方法。
+     * <p>如果将获取leftLayout和rightLayout放在super.onLayout()下面，那么就多执行一次onLayout
+     * <p>这里的leftLayout和rightLayout感觉更适合放在onMeasure()之中进行执行
+     * @param changed
+     *          而changed，代表的是这个View的大小或者位置改变的时候才为true，子view的大小位置改变不影响changed
+     *
+     */
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         if(changed){
-            Log.e(TAG,"super()之前，Changed为true");
+            Log.e(TAG,"Changed为true，执行onLayout()");
         }else{
-            Log.e(TAG,"super()之前，Changed为false");
+            Log.e(TAG,"Changed为false，执行onLayout()");
         }
-        super.onLayout(changed, l, t, r, b);
         if(changed){
-            Log.e(TAG,"super()之后，Changed为true");
             leftLayout=getChildAt(0);
             leftLayoutParams=(MarginLayoutParams)leftLayout.getLayoutParams();
 
             rightEdge=-leftLayoutParams.width;
             rightLayout=getChildAt(1);
-            rightLayoutParams=(MarginLayoutParams)leftLayout.getLayoutParams();
+            rightLayoutParams=(MarginLayoutParams)rightLayout.getLayoutParams();
             rightLayoutParams.width=screenWidth;
             rightLayout.setLayoutParams(rightLayoutParams);
+            Log.e(TAG,"Changed为true，setLayoutParams()");
         }
+        super.onLayout(changed, l, t, r, b);
     }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         createVelocityTracker(event);
-        //这里有什么用？？？？？？？？？？？？？？？？？？？？？？？
-        if(leftLayout.getVisibility()!=View.VISIBLE){
-            leftLayout.setVisibility(View.VISIBLE);
-        }
+
         switch (event.getAction()){
             case MotionEvent.ACTION_DOWN:
+                Log.e(TAG,"MotionEvent: ACTION_DOWN");
                 xDown=event.getRawX();
                 yDown=event.getRawY();
                 break;
             case MotionEvent.ACTION_MOVE:
+                Log.e(TAG,"MotionEvent: ACTION_MOVE");
                 xMove=event.getRawX();
                 yMove=event.getRawY();
                 int moveDistanceX=(int)(xMove-xDown);
@@ -139,6 +148,7 @@ public class SlidingLayout extends RelativeLayout implements View.OnTouchListene
                 }
                 break;
             case MotionEvent.ACTION_UP:
+                Log.e(TAG,"MotionEvent: ACTION_UP");
                 xUp=event.getRawX();
                 int upDistanceX=(int)(xUp-xDown);
                 if(isSliding){
@@ -156,7 +166,7 @@ public class SlidingLayout extends RelativeLayout implements View.OnTouchListene
                         }
                     }
                 }else if(upDistanceX<touchSlop&&isLeftLayoutVisible){
-                    //这个if的作用是什么？
+                    //左侧布局显示，点击一下右侧布局，显示右侧布局
                     scrollToRightLayout();
                 }
                 recycleVelocityTracker();
@@ -192,7 +202,7 @@ public class SlidingLayout extends RelativeLayout implements View.OnTouchListene
                 }
                 publishProgress(rightMargin);
                 try{
-                    Thread.sleep(20);
+                    Thread.sleep(15);
                 }catch (InterruptedException e){
                     e.printStackTrace();
                 }
@@ -238,11 +248,11 @@ public class SlidingLayout extends RelativeLayout implements View.OnTouchListene
     private boolean shouldScrollToRightLayout(){
         return xDown-xUp>leftLayoutParams.width/2&&getScrollVelocity()>SNAP_VELOCITY;
     }
-    private void scrollToLeftLayout(){
-
+    public void scrollToLeftLayout(){
+        new ScrollTask().execute(-30);
     }
-    private void scrollToRightLayout(){
-
+    public void scrollToRightLayout(){
+        new ScrollTask().execute(30);
     }
 
     private int getScrollVelocity(){
