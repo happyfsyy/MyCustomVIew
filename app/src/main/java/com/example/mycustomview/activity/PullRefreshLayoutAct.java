@@ -52,7 +52,7 @@ public class PullRefreshLayoutAct extends AppCompatActivity implements AbsListVi
 
     @Override
     public void onScrollStateChanged(AbsListView view, int scrollState) {
-        
+
     }
 
     @Override
