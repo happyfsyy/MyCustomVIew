@@ -12,6 +12,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.mycustomview.R;
+import com.example.mycustomview.utils.LogUtil;
 import com.example.mycustomview.viewgroup.RefreshableView;
 
 import java.util.ArrayList;
@@ -60,6 +61,7 @@ public class RefreshableAct extends AppCompatActivity {
                             public void run() {
                                 refreshableView.finishRefreshing();
                                 adapter.notifyDataSetChanged();
+                                LogUtil.e("adapter.notifyDataSetChanged()");
                             }
                         });
 

@@ -73,13 +73,11 @@ public class RefreshableView extends LinearLayout implements View.OnTouchListene
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         LogUtil.e("onMeasure()");
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        //todo 为什么这里的if不能放在super.onMeasure()的前面？
         if(!loadOnce){
-            //todo 设置headerView的topMargin，应该是在onMeasure()还是在onLayout()中，如果listview的数据更新，会调用这个方法么？
             headerHeight=headerView.getMeasuredHeight();
             headerParams=(MarginLayoutParams)headerView.getLayoutParams();
             headerParams.topMargin=-headerHeight;
-            //todo 这里需要headerView.setLayoutParams么？
-
             listView=(ListView)getChildAt(1);
             listView.setOnTouchListener(this);
             loadOnce=true;
@@ -102,6 +100,9 @@ public class RefreshableView extends LinearLayout implements View.OnTouchListene
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         if(isAbleToPull(event)){
+            if(mCurStatus==REFRESHING){
+                return false;
+            }
             switch (event.getAction()){
                 case MotionEvent.ACTION_DOWN:
                     LogUtil.e("ACTION_DOWN");
@@ -132,12 +133,12 @@ public class RefreshableView extends LinearLayout implements View.OnTouchListene
                         new HideTask().execute(mCurStatus);
                     }else if(mCurStatus==RELEASE_TO_REFRESH){
                         new HideTask().execute(mCurStatus);
-
                     }
                     break;
                 default:
             }
-            //todo 只执行onTouch，不执行onTouchEvent
+            //这里的return true代表后续的动作，只执行onTouch，不执行onTouchEvent。
+            //也就是在下拉的过程中，不再响应listView的点击事件了。
             if(mCurStatus==PULL_TO_REFRESH||mCurStatus==RELEASE_TO_REFRESH){
                 listView.setPressed(false);
                 listView.setFocusable(false);
