@@ -38,13 +38,13 @@
 
         </activity>
         <activity android:name=".activity.RefreshableAct">
-
-        </activity>
-        <activity android:name=".activity.PullRefreshLayoutAct">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+        <activity android:name=".activity.PullRefreshLayoutAct">
+
         </activity>
     </application>
 </manifest>
