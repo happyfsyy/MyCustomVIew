@@ -12,4 +12,8 @@
     <string name="updated_at">上次更新与%1$s前</string>
     <string name="updated_just_now">刚刚更新</string>
     <string name="time_error">时间有问题</string>
+    <string name="scroll_pull_to_refresh">下拉刷新</string>
+    <string name="scroll_release_to_refresh">释放更新</string>
+    <string name="scroll_refreshing">加载中…</string>
+    <string name="scroll_loading_more">加载更多…</string>
 </resources>
