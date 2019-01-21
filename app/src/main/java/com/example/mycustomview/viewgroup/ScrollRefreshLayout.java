@@ -10,11 +10,10 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.animation.RotateAnimation;
-import android.widget.ArrayAdapter;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Scroller;
@@ -23,7 +22,7 @@ import android.widget.TextView;
 import com.example.mycustomview.R;
 import com.example.mycustomview.utils.LogUtil;
 
-public class ScrollRefreshLayout extends LinearLayout {
+public class ScrollRefreshLayout extends ViewGroup implements AbsListView.OnScrollListener {
     private View headerView;
     private ImageView arrow;
     private ProgressBar progressBar;
@@ -33,40 +32,31 @@ public class ScrollRefreshLayout extends LinearLayout {
     private int headerHeight;
     private float yDown;
     private float yMove;
+    private int offset;
     private int touchSlop;
     public static final int STATUS_PULL_TO_REFRESH=0;
     public static final int STATUS_RELEASE_TO_REFRESH=1;
     public static final int STATUS_REFRESHING=2;
     public static final int STATUS_IDLE=3;
+    public static final int STATUS_LOADING=4;
     private int mCurStatus=STATUS_IDLE;
     private int mLastStatus=mCurStatus;
     private Scroller mScroller;
     private OnRefreshListener mListener;
     private View footerView;
-    private ProgressBar loadingPb;
-    private int heightSize;
+    private int footerHeight;
+    private OnLoadListener mOnLoadListener;
     public ScrollRefreshLayout(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        this.setOrientation(VERTICAL);
         initParams(context);
         initHeaderView(context);
         initListView(context);
         initFooterView(context);
-
     }
 
     private void initParams(Context context){
         touchSlop=ViewConfiguration.get(context).getScaledTouchSlop();
         mScroller=new Scroller(context);
-        int heightSize=context.getResources().getDisplayMetrics().heightPixels;
-        LogUtil.e("screenHeight: "+heightSize);
-
-        int result = 0;
-        int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            result = context.getResources().getDimensionPixelSize(resourceId);
-        }
-       LogUtil.e("状态栏高度："+result);
     }
 
     private void initHeaderView(Context context){
@@ -78,27 +68,19 @@ public class ScrollRefreshLayout extends LinearLayout {
     }
     private void initListView(Context context){
         listView=new ListView(context);
-        LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams params=new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT);
         listView.setLayoutParams(params);
+        listView.setOnScrollListener(this);
         addView(listView);
     }
-
     private void initFooterView(Context context){
         footerView=LayoutInflater.from(context).inflate(R.layout.scroll_refresh_footer,this,false);
-        loadingPb=footerView.findViewById(R.id.scroll_load_progressbar);
         addView(footerView);
     }
-
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         LogUtil.e("onMeasure()");
-//        super.onMeasure(widthMeasureSpec,heightMeasureSpec);
-//        LogUtil.e("headerView.Height()"+headerView.getMeasuredHeight());
-//        LogUtil.e("listView.Height()"+listView.getMeasuredHeight());
-//        LogUtil.e("footerView.Height()"+footerView.getMeasuredHeight());
-//        LogUtil.e("measuredHeight: "+MeasureSpec.getSize(heightMeasureSpec));
-
         int width=MeasureSpec.getSize(widthMeasureSpec);
         int height=0;
         int childCount=getChildCount();
@@ -108,34 +90,11 @@ public class ScrollRefreshLayout extends LinearLayout {
             measureChild(childView,widthMeasureSpec,heightMeasureSpec);
             height+=childView.getMeasuredHeight();
         }
-        LogUtil.e("measuredHeight2: "+height);
-        LogUtil.e("headerView.Height2: "+headerView.getMeasuredHeight());
-        LogUtil.e("listView.Height2: "+listView.getMeasuredHeight());
-        LogUtil.e("footerView.Height2: "+footerView.getMeasuredHeight());
         setMeasuredDimension(width,height);
     }
-
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         LogUtil.e("onLayout()");
-//        if(changed&&!isLoadOnce){
-//            isLoadOnce=true;
-//            listView=(ListView)getChildAt(1);
-//            //todo listview.setOnScrollListener
-//        }
-//        headerHeight=headerView.getMeasuredHeight();
-//        headerView.layout(0,-headerHeight,headerView.getMeasuredWidth(),0);
-//        listView.layout(0,0,listView.getMeasuredWidth(),listView.getMeasuredHeight()+headerHeight);
-
-//        super.onLayout(changed,l,t,r,b);
-//        if(changed&&!isLoadOnce){
-//            isLoadOnce=true;
-//            listView=(ListView)getChildAt(1);
-//            headerHeight=headerView.getMeasuredHeight();
-//            scrollTo(0,headerHeight);
-//        }
-
-
         int childCount=getChildCount();
         View childView;
         int top=0;
@@ -145,6 +104,7 @@ public class ScrollRefreshLayout extends LinearLayout {
             top+=childView.getMeasuredHeight();
         }
         headerHeight=headerView.getMeasuredHeight();
+        footerHeight=footerView.getMeasuredHeight();
         scrollTo(0,headerHeight);
     }
 
@@ -158,18 +118,17 @@ public class ScrollRefreshLayout extends LinearLayout {
      */
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        if(!canScrollDown()){
-            switch (ev.getAction()){
-                case MotionEvent.ACTION_DOWN:
-                    yDown=ev.getRawY();
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    yMove=ev.getRawY();
-                    int offset=(int)(yMove-yDown);
-                    if(offset>touchSlop)
-                        return true;
-                    break;
-            }
+        switch (ev.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                yDown=ev.getRawY();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                yMove=ev.getRawY();
+                offset=(int)(yMove-yDown);
+                if(!canScrollDown()&&offset>touchSlop){
+                    return true;
+                }
+                break;
         }
         return false;
     }
@@ -182,18 +141,17 @@ public class ScrollRefreshLayout extends LinearLayout {
             case MotionEvent.ACTION_MOVE:
                 yMove=event.getRawY();
                 //根据下拉的距离，执行scrollBy
-                int offset=(int)(yMove-yDown)/2;
-                //offset>0代表向下滑动，看上面的内容，scrollBy的参数应该是负
+                offset=(int)(yMove-yDown)/2;
+                //offset>0代表手指向下滑动，内容向下滑动，scrollBy的参数应该是负
                 //当前不是刷新状态的时候，才可以下拉headerView。
                 // 如果下拉的距离超过headerView的高度，就进入Release_to_refresh状态。
-                if(mCurStatus!=STATUS_REFRESHING){
+                if(mCurStatus!=STATUS_REFRESHING&&mCurStatus!=STATUS_LOADING){
                     if(offset<headerHeight){
                         mCurStatus=STATUS_PULL_TO_REFRESH;
                     }else{
                         mCurStatus=STATUS_RELEASE_TO_REFRESH;
                     }
                     scrollTo(0,headerHeight-offset);
-//                    scrollTo(0,-offset);
                     LogUtil.e("ScrollTo()");
                     updateHeaderView();
                 }
@@ -201,20 +159,15 @@ public class ScrollRefreshLayout extends LinearLayout {
             case MotionEvent.ACTION_UP:
                 if(mCurStatus==STATUS_PULL_TO_REFRESH){
                     LogUtil.e("STATUS_PULL_TO_REFRESH");
-                    LogUtil.e("ScrollY(): "+getScrollY()+" dy: "+(0-getScrollY()));
-//                    mScroller.startScroll(0,getScrollY(),0,0-getScrollY());
                     mScroller.startScroll(0,getScrollY(),0,headerHeight-getScrollY());
-
-                    LogUtil.e("StartScroll");
+                    LogUtil.e("StartScroll()");
                     postInvalidate();
                     mCurStatus=STATUS_IDLE;
                     mLastStatus=mCurStatus;
                 }else if(mCurStatus==STATUS_RELEASE_TO_REFRESH){
                     LogUtil.e("STATUS_RELEASE_TO_REFRESH");
-                    LogUtil.e("ScrollY(): "+getScrollY()+" dy: "+(-headerHeight-getScrollY()));
-//                    mScroller.startScroll(0,getScrollY(),0,-headerHeight-getScrollY());
                     mScroller.startScroll(0,getScrollY(),0,0-getScrollY());
-
+                    LogUtil.e("StartScroll()");
                     postInvalidate();
                     mCurStatus=STATUS_REFRESHING;
                     updateHeaderView();
@@ -223,6 +176,35 @@ public class ScrollRefreshLayout extends LinearLayout {
                 break;
         }
         return true;
+    }
+
+    @Override
+    public void onScrollStateChanged(AbsListView view, int scrollState) {
+        switch (scrollState){
+            case AbsListView.OnScrollListener.SCROLL_STATE_IDLE:
+                LogUtil.e("SCROLL_STATE_IDLE");
+                break;
+            case AbsListView.OnScrollListener.SCROLL_STATE_FLING:
+                LogUtil.e("SCROLL_STATE_FLING");
+                break;
+            case AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL:
+                LogUtil.e("SCROLL_STATE_TOUCH_SCROLL");
+                LogUtil.e("mCurStatus: "+mCurStatus+" !canScrollUp: "+!canScrollUp()+" offset: "+offset);
+                break;
+        }
+    }
+
+    @Override
+    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+        LogUtil.e("onScroll()");
+        LogUtil.e("mCurStatus: "+mCurStatus+" !canScrollUp: "+!canScrollUp()+" offset: "+offset);
+        if(mCurStatus==STATUS_IDLE&&!canScrollUp()&&offset<0){
+            mCurStatus=STATUS_LOADING;
+            mScroller.startScroll(0,getScrollY(),0,footerHeight);
+            invalidate();
+            mLastStatus=mCurStatus;
+            mOnLoadListener.onLoad();
+        }
     }
 
     /**
@@ -257,7 +239,7 @@ public class ScrollRefreshLayout extends LinearLayout {
             arrow.clearAnimation();
             arrow.setVisibility(View.GONE);
             progressBar.setVisibility(View.VISIBLE);
-        }//todo 这里之后可以加上Status_loading
+        }
     }
     private void changeStatusText(){
         if(mCurStatus==STATUS_PULL_TO_REFRESH){
@@ -277,6 +259,9 @@ public class ScrollRefreshLayout extends LinearLayout {
     private boolean canScrollDown(){
         return listView.canScrollVertically(-1);
     }
+    private boolean canScrollUp() {
+        return listView.canScrollVertically(1);
+    }
 
     @Override
     public void computeScroll() {
@@ -294,7 +279,6 @@ public class ScrollRefreshLayout extends LinearLayout {
         this.mListener=listener;
     }
     public void finishRefresh(){
-//        mScroller.startScroll(0,getScrollY(),0,0-getScrollY());
         mScroller.startScroll(0,getScrollY(),0,headerHeight-getScrollY());
         invalidate();
         mCurStatus=STATUS_IDLE;
@@ -309,5 +293,21 @@ public class ScrollRefreshLayout extends LinearLayout {
 
     public void setAdapter(BaseAdapter adapter){
         listView.setAdapter(adapter);
+    }
+
+    public interface OnLoadListener{
+        void onLoad();
+    }
+    public void setOnLoadListener(OnLoadListener onLoadListener){
+        mOnLoadListener=onLoadListener;
+    }
+    public void finishLoading(){
+        mScroller.startScroll(0,getScrollY(),0,-footerHeight);
+        invalidate();
+        mCurStatus=STATUS_IDLE;
+        mLastStatus=mCurStatus;
+    }
+    public void setOnItemClickListener(AdapterView.OnItemClickListener listener){
+        listView.setOnItemClickListener(listener);
     }
 }

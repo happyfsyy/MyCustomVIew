@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.mycustomview.R;
@@ -19,7 +18,6 @@ import java.util.List;
 
 public class ScrollRefreshLayoutAct extends AppCompatActivity {
     private ScrollRefreshLayout scrollRefreshLayout;
-    private ListView listView;
     private List<String> data=new ArrayList<>();
     private ArrayAdapter<String> adapter;
     private Handler mHandler=new Handler();
@@ -35,14 +33,22 @@ public class ScrollRefreshLayoutAct extends AppCompatActivity {
         adapter=new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,data);
         scrollRefreshLayout.setAdapter(adapter);
 
-//        listView=findViewById(R.id.scroll_refresh_listView);
-//        listView.setAdapter(adapter);
-//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                Toast.makeText(ScrollRefreshLayoutAct.this, data.get(position), Toast.LENGTH_SHORT).show();
-//            }
-//        });
+        scrollRefreshLayout.setOnLoadListener(new ScrollRefreshLayout.OnLoadListener() {
+            @Override
+            public void onLoad() {
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        int size=data.size();
+                        for(int i=size;i<size+5;i++){
+                            data.add(String.valueOf(i));
+                        }
+                        adapter.notifyDataSetChanged();
+                        scrollRefreshLayout.finishLoading();
+                    }
+                },2000);
+            }
+        });
 
         scrollRefreshLayout.setOnRefreshListener(new ScrollRefreshLayout.OnRefreshListener() {
             @Override
@@ -58,6 +64,12 @@ public class ScrollRefreshLayoutAct extends AppCompatActivity {
                         adapter.notifyDataSetChanged();
                     }
                 },2000);
+            }
+        });
+        scrollRefreshLayout.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(ScrollRefreshLayoutAct.this, data.get(position), Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -8,7 +8,6 @@
         android:gravity="center_vertical"
         android:layout_centerHorizontal="true">
         <ProgressBar
-            android:id="@+id/scroll_load_progressbar"
             android:layout_width="20dp"
             android:layout_height="20dp"
             style="?android:attr/progressBarStyleSmall"
