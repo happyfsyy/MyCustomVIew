@@ -45,7 +45,8 @@ public class ScrollRefreshLayoutAct extends AppCompatActivity {
                             data.add(String.valueOf(i));
                         }
                         adapter.notifyDataSetChanged();
-                        scrollRefreshLayout.setSelection(size-5);
+                        LogUtil.e("ScrollRefreshLayoutAct: visibleItemCount->"+scrollRefreshLayout.getVisibleItemCount());
+                        scrollRefreshLayout.setSelection(size-scrollRefreshLayout.getVisibleItemCount()/2);
                         scrollRefreshLayout.finishLoading();
                     }
                 },2000);

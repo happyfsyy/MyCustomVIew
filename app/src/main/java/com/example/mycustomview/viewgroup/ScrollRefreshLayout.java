@@ -45,6 +45,7 @@ public class ScrollRefreshLayout extends ViewGroup implements AbsListView.OnScro
     private View footerView;
     private int footerHeight;
     private OnLoadListener mOnLoadListener;
+    private int visibleItemCount;
     public ScrollRefreshLayout(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         initParams(context);
@@ -196,6 +197,7 @@ public class ScrollRefreshLayout extends ViewGroup implements AbsListView.OnScro
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
         LogUtil.e("onScroll()");
         LogUtil.e("mCurStatus: "+mCurStatus+" !canScrollUp: "+!canScrollUp()+" offset: "+offset);
+        this.visibleItemCount=visibleItemCount;
         if(mCurStatus==STATUS_IDLE&&!canScrollUp()&&offset<0){
             mCurStatus=STATUS_LOADING;
             LogUtil.e("mCurStatus= "+mCurStatus);
@@ -313,5 +315,8 @@ public class ScrollRefreshLayout extends ViewGroup implements AbsListView.OnScro
     public void setSelection(int pos){
         LogUtil.e("setSelection()");
         listView.setSelection(pos);
+    }
+    public int getVisibleItemCount(){
+        return visibleItemCount;
     }
 }
