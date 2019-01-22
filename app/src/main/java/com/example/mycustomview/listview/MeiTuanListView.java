@@ -37,6 +37,7 @@ public class MeiTuanListView extends ListView implements AbsListView.OnScrollLis
     private int yScrollHeight;
     private int mCurStatus;
     private OnRefreshListener mListener;
+    private boolean loadOnce;
 
 
     public MeiTuanListView(Context context, AttributeSet attrs) {
@@ -52,6 +53,8 @@ public class MeiTuanListView extends ListView implements AbsListView.OnScrollLis
     }
 
     private void init(Context context){
+        setOverScrollMode(View.OVER_SCROLL_NEVER);
+
         setOnScrollListener(this);
         headerView=(LinearLayout)LayoutInflater.from(context).inflate(R.layout.meituan_header,this,false);
         firstStepView=headerView.findViewById(R.id.meituan_first_view);
@@ -88,8 +91,15 @@ public class MeiTuanListView extends ListView implements AbsListView.OnScrollLis
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         LogUtil.e("onLayout()");
         super.onLayout(changed, l, t, r, b);
+        if(!loadOnce){
+
+            loadOnce=true;
+        }
         headerViewHeight=headerView.getMeasuredHeight();
+        LogUtil.e("headerViewHeight: "+headerViewHeight);
         scrollTo(0,headerViewHeight);
+        LogUtil.e("getScrollY(): "+getScrollY());
+
     }
 
     @Override
@@ -103,40 +113,57 @@ public class MeiTuanListView extends ListView implements AbsListView.OnScrollLis
     }
 
     private boolean isTop(){
-        return getFirstVisiblePosition()==0&&getScrollY()<=headerViewHeight;
+//        return getFirstVisiblePosition()==0&&getScrollY()<=headerViewHeight;
+        return getFirstVisiblePosition()==0&&getScrollY()<=0;
+
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         if(isTop()){
+            LogUtil.e("getFirstVisiblePostion(): "+getFirstVisiblePosition()+"\tgetScrollY() "+getScrollY()+"\t headerViewHeight: "+headerViewHeight);
             switch (ev.getAction()){
                 case MotionEvent.ACTION_DOWN:
-                    LogUtil.e("ACTION_DOWN");
-                    yDown=ev.getRawY();
+                    yDown=ev.getY();
+                    LogUtil.e("ACTION_DOWN："+yDown);
+
                     break;
                 case MotionEvent.ACTION_MOVE:
-                    LogUtil.e("ACTION_MOVE");
-                    yMove=ev.getRawY();
+                    yMove=ev.getY();
+                    LogUtil.e("ACTION_MOVE: "+yMove);
                     yOffset=yMove-yDown;
                     //yScrollHeight代表headerView移动的距离
                     yScrollHeight=(int)yOffset/2;
+                    LogUtil.e("yScrollHeight: "+yScrollHeight);
                     //小于0就是上滑，不进行任何操作
                     if(mCurStatus!=STATUS_REFRESHING&&yMove>0){
                         if(yScrollHeight<headerViewHeight){
                             mCurStatus=STATUS_PULL_TO_REFRESH;
+                            LogUtil.e("mCurStatus=STATUS_PULL_TO_REFRESH;");
                         }else{
                             mCurStatus=STATUS_RELEASE_TO_REFRESH;
+                            LogUtil.e("mCurStatus=STATUS_RELEASE_TO_REFRESH;");
                         }
+                        LogUtil.e("划向: "+(headerViewHeight-yScrollHeight));
                         scrollTo(0,headerViewHeight-yScrollHeight);
+//                        scrollTo(0,0-yScrollHeight);
                         updateHeaderView();
                     }
                     break;
                 case MotionEvent.ACTION_UP:
+                    LogUtil.e("ACTION_UP");
                     if(mCurStatus==STATUS_PULL_TO_REFRESH){
+                        LogUtil.e("mCurStatus=STATUS_PULL_TO_REFRESH;");
+                        LogUtil.e("平滑地划向smoothScrollBy(): "+(-getScrollY()));
                         smoothScrollBy(headerViewHeight-getScrollY(),250);
+//                        smoothScrollBy(0-getScrollY(),250);
                         mCurStatus=STATUS_IDLE;
                     }else if(mCurStatus==STATUS_RELEASE_TO_REFRESH){
+                        LogUtil.e("mCurStatus=STATUS_RELEASE_TO_REFRESH;");
+                        LogUtil.e("平滑地划向smoothScrollBy(): "+(headerViewHeight-getScrollY()));
+//                        smoothScrollBy(-headerViewHeight-getScrollY(),250);
                         smoothScrollBy(0-getScrollY(),250);
+
                         setSelection(0);
                         mCurStatus=STATUS_REFRESHING;
                         updateHeaderView();
@@ -170,6 +197,13 @@ public class MeiTuanListView extends ListView implements AbsListView.OnScrollLis
             secondStepView.setVisibility(View.GONE);
             thirdStepView.setVisibility(View.VISIBLE);
             thirdAnim.start();
+        }else if(mCurStatus==STATUS_IDLE){
+            firstStepView.setVisibility(View.VISIBLE);
+
+            secondAnim.stop();
+            secondStepView.setVisibility(View.GONE);
+            thirdAnim.stop();
+            thirdStepView.setVisibility(View.GONE);
         }
     }
 
@@ -180,7 +214,10 @@ public class MeiTuanListView extends ListView implements AbsListView.OnScrollLis
         mListener=listener;
     }
     public void finishRefresh(){
-        smoothScrollBy(headerViewHeight,250);
+        smoothScrollBy(headerViewHeight-getScrollY(),250);
+//        smoothScrollBy(0-getScrollY(),250);
+
         mCurStatus=STATUS_IDLE;
+        updateHeaderView();
     }
 }

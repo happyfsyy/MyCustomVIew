@@ -33,7 +33,7 @@ public class MeiTuanRefreshFirstStepView extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        LogUtil.e("onMeasure()");
+//        LogUtil.e("onMeasure()");
         int widthSize=MeasureSpec.getSize(widthMeasureSpec);
         int widthMode=MeasureSpec.getMode(widthMeasureSpec);
         int heightSize=MeasureSpec.getSize(heightMeasureSpec);
@@ -57,7 +57,7 @@ public class MeiTuanRefreshFirstStepView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        LogUtil.e("onDraw()");
+//        LogUtil.e("onDraw()");
         canvas.scale(progress,progress,measuredWidth/2,measuredHeight/2);
         canvas.drawBitmap(scaledBitmap,0,measuredHeight/4,null);
     }
