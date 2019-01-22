@@ -14,35 +14,30 @@
         <activity android:name=".activity.ImageIntroAct">
         </activity>
         <activity android:name=".activity.CircularRingAct">
-
         </activity>
         <activity android:name=".activity.VolumeControlAct">
-
         </activity>
         <activity android:name=".activity.FourItemsViewGroupAct">
-
         </activity>
         <activity android:name=".activity.ViewDragHelperAct">
-
         </activity>
         <activity android:name=".activity.DeepVDHLayoutAct">
-
         </activity>
         <activity android:name=".activity.FlowLayoutAct">
-
         </activity>
         <activity android:name=".activity.RenRenSlideAct">
-
         </activity>
         <activity android:name=".activity.SlideLayoutAct">
-
         </activity>
         <activity android:name=".activity.RefreshableAct">
-
         </activity>
         <activity android:name=".activity.PullRefreshLayoutAct">
         </activity>
         <activity android:name=".activity.ScrollRefreshLayoutAct">
+        </activity>
+        <activity android:name=".activity.MeiTuanHeaderViewAnimationAct">
+        </activity>
+        <activity android:name=".activity.MeiTuanListViewAct">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

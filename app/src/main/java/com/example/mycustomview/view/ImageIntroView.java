@@ -91,7 +91,7 @@ public class ImageIntroView extends View {
         if(heightMode==MeasureSpec.EXACTLY){
             mHeight=heightSize;
         }else{
-            int desireHeight=getPaddingTop()+Math.max(imageHeight,introTextHeight)+getPaddingBottom();
+            int desireHeight=getPaddingTop()+imageHeight+introTextHeight+getPaddingBottom();
             mHeight=Math.min(heightSize,desireHeight);
         }
         setMeasuredDimension(mWidth,mHeight);

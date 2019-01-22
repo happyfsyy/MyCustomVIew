@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="65dp"
+    android:gravity="center">
+    <com.example.mycustomview.view.MeiTuanRefreshFirstStepView
+        android:id="@+id/meituan_first_view"
+        android:layout_width="45dp"
+        android:layout_height="45dp" 
+        android:layout_margin="10dp"/>
+    <com.example.mycustomview.view.MeiTuanRefreshSecondStepView
+        android:id="@+id/meituan_second_view"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_margin="10dp"
+        android:visibility="gone"/>
+    <com.example.mycustomview.view.MeiTuanRefreshSecondStepView
+        android:id="@+id/meituan_third_view"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:visibility="gone"
+        android:layout_margin="10dp"
+        />
+    <TextView
+        android:id="@+id/meituan_status_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:text="@string/scroll_pull_to_refresh"/>
+</LinearLayout>
