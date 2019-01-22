@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.example.mycustomview.R;
+import com.example.mycustomview.utils.LogUtil;
 import com.example.mycustomview.viewgroup.ScrollRefreshLayout;
 
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ public class ScrollRefreshLayoutAct extends AppCompatActivity {
 
         setContentView(R.layout.activity_scroll_refresh_layout);
         scrollRefreshLayout=findViewById(R.id.scroll_refresh_layout);
-        for(int i=0;i<5;i++){
+        for(int i=0;i<15;i++){
             data.add(String.valueOf(i));
         }
         adapter=new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,data);
@@ -40,10 +41,11 @@ public class ScrollRefreshLayoutAct extends AppCompatActivity {
                     @Override
                     public void run() {
                         int size=data.size();
-                        for(int i=size;i<size+5;i++){
+                        for(int i=size;i<size+10;i++){
                             data.add(String.valueOf(i));
                         }
                         adapter.notifyDataSetChanged();
+                        scrollRefreshLayout.setSelection(size-5);
                         scrollRefreshLayout.finishLoading();
                     }
                 },2000);
@@ -58,7 +60,7 @@ public class ScrollRefreshLayoutAct extends AppCompatActivity {
                     public void run() {
                         scrollRefreshLayout.finishRefresh();
                         int size=data.size();
-                        for(int i=size;i<size+5;i++){
+                        for(int i=size;i<size+10;i++){
                             data.add(String.valueOf(i));
                         }
                         adapter.notifyDataSetChanged();

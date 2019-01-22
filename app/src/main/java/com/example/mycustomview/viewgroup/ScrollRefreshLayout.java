@@ -28,7 +28,6 @@ public class ScrollRefreshLayout extends ViewGroup implements AbsListView.OnScro
     private ProgressBar progressBar;
     private TextView statusText;
     private ListView listView;
-    private boolean isLoadOnce;
     private int headerHeight;
     private float yDown;
     private float yMove;
@@ -193,25 +192,23 @@ public class ScrollRefreshLayout extends ViewGroup implements AbsListView.OnScro
                 break;
         }
     }
-
     @Override
     public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
         LogUtil.e("onScroll()");
         LogUtil.e("mCurStatus: "+mCurStatus+" !canScrollUp: "+!canScrollUp()+" offset: "+offset);
         if(mCurStatus==STATUS_IDLE&&!canScrollUp()&&offset<0){
             mCurStatus=STATUS_LOADING;
+            LogUtil.e("mCurStatus= "+mCurStatus);
             mScroller.startScroll(0,getScrollY(),0,footerHeight);
             invalidate();
             mLastStatus=mCurStatus;
             mOnLoadListener.onLoad();
         }
     }
-
     /**
      * 更新headerView的状态，包括箭头，状态文字
      */
     private void updateHeaderView(){
-        LogUtil.e("updateHeaderView()");
         if(mLastStatus==mCurStatus)
             return;
         changeArrow();
@@ -219,6 +216,7 @@ public class ScrollRefreshLayout extends ViewGroup implements AbsListView.OnScro
         mLastStatus=mCurStatus;
     }
     private void changeArrow(){
+        LogUtil.e("changeArrow()");
         float pivotX=arrow.getWidth()/2;
         float pivotY=arrow.getHeight()/2;
         if(mCurStatus==STATUS_PULL_TO_REFRESH){
@@ -242,6 +240,7 @@ public class ScrollRefreshLayout extends ViewGroup implements AbsListView.OnScro
         }
     }
     private void changeStatusText(){
+        LogUtil.e("changeStatusText()");
         if(mCurStatus==STATUS_PULL_TO_REFRESH){
             statusText.setText(getResources().getString(R.string.scroll_pull_to_refresh));
         }else if(mCurStatus==STATUS_RELEASE_TO_REFRESH){
@@ -302,6 +301,7 @@ public class ScrollRefreshLayout extends ViewGroup implements AbsListView.OnScro
         mOnLoadListener=onLoadListener;
     }
     public void finishLoading(){
+        LogUtil.e("finishLoading()");
         mScroller.startScroll(0,getScrollY(),0,-footerHeight);
         invalidate();
         mCurStatus=STATUS_IDLE;
@@ -309,5 +309,9 @@ public class ScrollRefreshLayout extends ViewGroup implements AbsListView.OnScro
     }
     public void setOnItemClickListener(AdapterView.OnItemClickListener listener){
         listView.setOnItemClickListener(listener);
+    }
+    public void setSelection(int pos){
+        LogUtil.e("setSelection()");
+        listView.setSelection(pos);
     }
 }
