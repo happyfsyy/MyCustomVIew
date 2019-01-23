@@ -1,21 +1,31 @@
 package com.example.mycustomview.activity;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ArrayAdapter;
 
 import com.example.mycustomview.R;
 import com.example.mycustomview.listview.MeiTuanListView;
+import com.example.mycustomview.listview.MeiTuanListView2;
+import com.example.mycustomview.utils.LogUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MeiTuanListViewAct extends AppCompatActivity {
-    private MeiTuanListView listView;
+    private MeiTuanListView2 listView;
     private ArrayAdapter<String> adapter;
     private List<String> list=new ArrayList<>();
+    private Handler mHandler=new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+
+        }
+    };
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,7 +36,7 @@ public class MeiTuanListViewAct extends AppCompatActivity {
         }
         adapter=new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,list);
         listView.setAdapter(adapter);
-        listView.setOnRefreshListener(new MeiTuanListView.OnRefreshListener() {
+        listView.setOnMeiTuanRefreshListener(new MeiTuanListView2.OnMeiTuanRefreshListener() {
             @Override
             public void onRefresh() {
                 new Thread(new Runnable() {
@@ -45,7 +55,9 @@ public class MeiTuanListViewAct extends AppCompatActivity {
                             @Override
                             public void run() {
                                 adapter.notifyDataSetChanged();
-                                listView.finishRefresh();
+                                LogUtil.e("adapter.notifyDataSetChanged()");
+                                listView.setOnRefreshComplete();
+//                                listView.setSelection(0);
                             }
                         });
                     }

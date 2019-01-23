@@ -114,6 +114,7 @@ public class MeiTuanListView extends ListView implements AbsListView.OnScrollLis
 
     private boolean isTop(){
 //        return getFirstVisiblePosition()==0&&getScrollY()<=headerViewHeight;
+        //todo 可以将这里的getScrollY改为view.getTop>0或者VelocityTracker.getCurY
         return getFirstVisiblePosition()==0&&getScrollY()<=0;
 
     }
@@ -172,6 +173,7 @@ public class MeiTuanListView extends ListView implements AbsListView.OnScrollLis
                     break;
             }
         }
+        //todo 这里不去return super.onTochEvent()，而是去scrollTo或者scrollBy，直接控制滑动。
         return super.onTouchEvent(ev);
     }
     private void updateHeaderView(){
