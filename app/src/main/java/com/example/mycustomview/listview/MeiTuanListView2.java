@@ -1,6 +1,7 @@
 package com.example.mycustomview.listview;
 
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.drawable.AnimationDrawable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -8,6 +9,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.AbsListView;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Scroller;
@@ -20,6 +23,10 @@ import com.example.mycustomview.view.MeiTuanRefreshSecondStepView;
 
 /**
  * getScrollY()一直是0，根本不能用smoothScrollY来做，只能用AsyncTask异步任务来更改padding。
+ * scroll的距离或者目的地，根据padding可以解决了，scroll之后，如果执行更新headerView的padding，那么scroll位置又不对了。
+ * 而如果不更新headerview的padding，那么就是可以向上直接滚动的，可以看到headerview。
+ * 我选择让action_down的时候，更新headerView的padding。
+ * 看样子大多数问题都解决了，但是，list的数据没更新啊！！！！！！！！不知道怎么解决了。
  */
 public class MeiTuanListView2 extends ListView implements AbsListView.OnScrollListener {
     private static final int DONE = 0;
@@ -65,11 +72,22 @@ public class MeiTuanListView2 extends ListView implements AbsListView.OnScrollLi
     public void setOnRefreshComplete(){
         LogUtil.e("setOnRefreshComplete()");
 
-//        mScroller.startScroll(0,(int)actualHeight-headerViewHeight,0,headerViewHeight);
-//        invalidate();
+        mScroller.startScroll(0,(int)actualHeight-headerViewHeight,0,headerViewHeight);
+        invalidate();
         state = DONE;
+
+        //更新之后，下半部分空白，无数据
+        postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                invalidate();
+            }
+        },250);
+
 //        lastState=DONE;
-        changeHeaderByState(state);
+//        changeHeaderByState(state);
+
+
     }
 
     private void init(Context context) {
@@ -96,13 +114,32 @@ public class MeiTuanListView2 extends ListView implements AbsListView.OnScrollLi
 
 
     @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        LogUtil.e("onMeasure()");
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        LogUtil.e("onLayout()");
         if(changed&&headerViewHeight<=0){
             headerViewHeight=headerView.getMeasuredHeight();
             LogUtil.e("headerViewHeight: "+headerViewHeight);
             headerView.setPadding(0, -headerViewHeight, 0, 0);
         }
         super.onLayout(changed, l, t, r, b);
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        LogUtil.e("onDraw()");
+        super.onDraw(canvas);
+    }
+
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        LogUtil.e("dispatchDraw()");
+        super.dispatchDraw(canvas);
     }
 
     @Override
@@ -134,14 +171,18 @@ public class MeiTuanListView2 extends ListView implements AbsListView.OnScrollLi
         if(mFirstVisibleItem==0){
             switch (ev.getAction()){
                 case MotionEvent.ACTION_DOWN:
+                    LogUtil.e("ACTION_DOWN");
                     startY=ev.getY();
+                    if(state==DONE){
+                        changeHeaderByState(state);
+                    }
                     break;
                 case MotionEvent.ACTION_MOVE:
                     LogUtil.e("ACTION_MOVE");
                     moveY=ev.getY();
                     offsetY=moveY-startY;
-                    actualHeight=offsetY/RATIO;
                     if(offsetY>touchSlop&&state!=REFRESHING){
+                        actualHeight=offsetY/RATIO;
                         paddingTop=(int)(-headerViewHeight+actualHeight);
                         float progress=actualHeight/headerViewHeight;
                         if(progress>1) progress = 1;
@@ -163,29 +204,34 @@ public class MeiTuanListView2 extends ListView implements AbsListView.OnScrollLi
                     LogUtil.e("getScrollY()的值是："+getScrollY());
                     if(state==PULL_TO_REFRESH){
                         LogUtil.e("PULL_TO_REFRESH");
-                        smoothScrollBy((int)(actualHeight),250);
+//                        smoothScrollBy((int)(actualHeight),250);
 //                        smoothScrollToPosition(1);
 //                        scrollListBy((int)actualHeight);
 //                        mScroller.startScroll(0,headerViewHeight-(int)actualHeight,0,(int)actualHeight);
-//                        mScroller.startScroll(0,0,0,(int)actualHeight);
+                        mScroller.startScroll(0,0,0,(int)actualHeight);
                         invalidate();
                         LogUtil.e("ScrollBy的终点应该是："+headerViewHeight);
                         LogUtil.e("ScrollBy的终点实际是："+(getScrollY()+actualHeight));
                         state=DONE;
-                        changeHeaderByState(state);
+//                        postDelayed(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                changeHeaderByState(state);
+//                            }
+//                        },250);
 //                        lastState=DONE;
                     }else if(state==RELEASE_TO_REFRESH){
                         LogUtil.e("RELEASE_TO_REFRESH");
                         LogUtil.e("ScrollBy的终点应该是：0");
                         LogUtil.e("ScrollBy的终点实际是："+(getScrollY()+actualHeight-headerViewHeight));
-//                        mScroller.startScroll(0,0,0,(int)(actualHeight-headerViewHeight));
-//                        invalidate();
-                        smoothScrollBy((int)(actualHeight-headerViewHeight),250);
+                        mScroller.startScroll(0,0,0,(int)(actualHeight-headerViewHeight));
+                        invalidate();
+//                        smoothScrollBy((int)(actualHeight-headerViewHeight),250);
 //                        smoothScrollToPosition(0,0);
 //                        scrollListBy((int)(actualHeight-headerViewHeight));
-                        mOnRefreshListener.onRefresh();
                         state=REFRESHING;
                         changeHeaderByState(state);
+                        mOnRefreshListener.onRefresh();
                     }else if(state==REFRESHING){
                         LogUtil.e("REFRESHING");
                     }else if(state==DONE){

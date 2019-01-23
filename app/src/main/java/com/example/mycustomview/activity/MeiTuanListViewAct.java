@@ -20,12 +20,7 @@ public class MeiTuanListViewAct extends AppCompatActivity {
     private MeiTuanListView2 listView;
     private ArrayAdapter<String> adapter;
     private List<String> list=new ArrayList<>();
-    private Handler mHandler=new Handler(){
-        @Override
-        public void handleMessage(Message msg) {
-
-        }
-    };
+    private Handler mHandler=new Handler();
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,9 +49,9 @@ public class MeiTuanListViewAct extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
+                                listView.setOnRefreshComplete();
                                 adapter.notifyDataSetChanged();
                                 LogUtil.e("adapter.notifyDataSetChanged()");
-                                listView.setOnRefreshComplete();
 //                                listView.setSelection(0);
                             }
                         });
