@@ -37,4 +37,8 @@
         <attr name="splitSize" format="integer"/>
         <attr name="bgImage" format="reference"/>
     </declare-styleable>
+    
+    <declare-styleable name="SlidingMenu">
+        <attr name="rightPadding" format="dimension"/>
+    </declare-styleable>
 </resources>
