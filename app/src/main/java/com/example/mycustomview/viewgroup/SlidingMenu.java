@@ -74,21 +74,22 @@ public class SlidingMenu extends HorizontalScrollView {
         int action=ev.getAction();
         switch (action){
             case MotionEvent.ACTION_DOWN:
+                LogUtil.e("ACTION_DOWN");
                 xDown=ev.getRawX();
                 break;
             case MotionEvent.ACTION_MOVE:
+                LogUtil.e("ACTION_MOVE");
                 xMove=ev.getRawX();
                 int offset=(int)(xMove-xDown);
-                if(!isOpen&&offset>touchSlop){
-                    isSliding=true;
-                }
-                if(isOpen&&-offset>touchSlop){
+                if(Math.abs(offset)>touchSlop){
                     isSliding=true;
                 }
                 break;
             case MotionEvent.ACTION_UP:
+                LogUtil.e("ACTION_UP");
                 int scrollX=getScrollX();
                 if(isSliding){
+                    LogUtil.e("正在滑动中");
                     if(scrollX>mHalfMenuWidth){
                         this.smoothScrollTo(mMenuWidth,0);
                         isOpen=false;
@@ -97,6 +98,8 @@ public class SlidingMenu extends HorizontalScrollView {
                         isOpen=true;
                     }
                     isSliding=false;
+                }else{
+                    LogUtil.e("不是滑动中");
                 }
                 return true;
         }

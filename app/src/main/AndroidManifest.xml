@@ -40,6 +40,8 @@
         <activity android:name=".activity.MeiTuanListViewAct">
         </activity>
         <activity android:name=".activity.SlidingMenuAct">
+        </activity>
+        <activity android:name=".activity.SlidingMenu2Act">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
