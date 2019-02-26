@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.mycustomview">
-
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:name=".activity.MyApplication"
         android:allowBackup="true"
@@ -42,6 +42,8 @@
         <activity android:name=".activity.SlidingMenuAct">
         </activity>
         <activity android:name=".activity.SlidingMenu2Act">
+        </activity>
+        <activity android:name=".activity.MixedTextImageAct">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
