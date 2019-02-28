@@ -194,7 +194,7 @@ public class RichTextEditor extends ScrollView {
      */
     public void insertImage(String imagePath){
         Bitmap bitmap=getScaledBitmap(imagePath,getWidth());
-        //todo insertImage
+        insertImage(bitmap,imagePath);
     }
 
     /**
@@ -221,7 +221,7 @@ public class RichTextEditor extends ScrollView {
             hideKeyBoard();
         }
     }
-    private void hideKeyBoard(){
+    public void hideKeyBoard(){
         InputMethodManager imm=(InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(lastFocusEdit.getWindowToken(),0);
     }

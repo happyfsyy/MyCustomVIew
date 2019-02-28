@@ -16,5 +16,5 @@
         android:paddingTop="5dp"
         android:paddingBottom="20dp"
         android:scaleType="fitXY"
-        />
+        android:src="@drawable/close"/>
 </RelativeLayout>
