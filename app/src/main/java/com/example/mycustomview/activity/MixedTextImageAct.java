@@ -18,6 +18,7 @@ public class MixedTextImageAct extends AppCompatActivity {
         String str2="-奥比斯都，全世界最浪漫的结婚之城；";
         String imgUrl2="<img>https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1551165987964&di=257c01ef83d837f471c5b118bb373e15&imgtype=0&src=http%3A%2F%2Fscimg.jb51.net%2Fallimg%2F160819%2F103-160Q9121559631.jpg</img>";
         String str3="-卑尔根，远离喧嚣，宁静感受一份爱";
-        mixedTextImageLayout.setContent(str1+imgUrl1+str2+imgUrl2+str3);
+        String imgUrl3="<img>https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1551169093561&di=d19be584d622fca2e8f71526409b7ffc&imgtype=0&src=http%3A%2F%2Fpic39.photophoto.cn%2F20160530%2F0008118818793369_b.jpg</img>";
+        mixedTextImageLayout.setContent(str1+imgUrl1+str2+imgUrl2+str3+imgUrl3);
     }
 }
