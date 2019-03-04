@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.DrawableWrapper;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -14,13 +15,24 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.example.mycustomview.R;
 import com.example.mycustomview.adapter.WheelAdapter;
 import com.example.mycustomview.interfaces.IWheelViewData;
 import com.example.mycustomview.listener.LoopViewGestureListener;
+import com.example.mycustomview.listener.OnItemSelectedListener;
+import com.example.mycustomview.timer.InertiaTimerTask;
 import com.example.mycustomview.timer.MessageHandler;
+import com.example.mycustomview.timer.SmoothScrollTimerTask;
+
+import java.util.EventListener;
+import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class WheelView extends View {
     public enum ACTION{
@@ -73,6 +85,26 @@ public class WheelView extends View {
     private Paint.FontMetrics fontMetrics;
     private DividerType dividerType;
     private boolean isCenterLabel=true;
+
+    private boolean isOptions=false;
+    private int drawCenterContentStart=0;//中间选中文字开始绘制位置
+    private int drawOutContentStart=0;//非中间选中文字开始绘制位置
+
+    private static final float SCALE_CONTENT=0.8f;//非中间文字则用此控制高度，压扁形成3D错觉
+
+    private int textXOffset;
+    private long startTime=0;
+
+    private ScheduledExecutorService mExecutor=Executors.newSingleThreadScheduledExecutor();
+    private ScheduledFuture<?> mFuture;
+
+    private float previousY=0;
+
+    private int mOffset=0;
+
+    private OnItemSelectedListener onItemSelectedListener;
+
+    private static final int VELOCITY_FLING=5;
 
     public WheelView(Context context) {
         this(context,null);
@@ -193,7 +225,6 @@ public class WheelView extends View {
             return ((IWheelViewData) item).getWheelViewText();
         }else if(item instanceof Integer){
             //如果为整型，至少保留两位数
-            //todo getFixNum
             return getFixNum((int)item);
         }
         return item.toString();
@@ -242,7 +273,6 @@ public class WheelView extends View {
                 preCurrentIndex=preCurrentIndex-adapter.getItemCount();
             }
         }
-        //todo 研究下这个参数有啥用，设置为0试试看
         //跟流动流畅度有关，总滑动距离与每个高度取余，即并不是一格格的滚动
         //每个item不一定滚到对应的Rect里的，这个item对应格子的偏移值
         float itemHeightOffset=totalScrollY%itemHeight;
@@ -271,10 +301,10 @@ public class WheelView extends View {
         if(dividerType==DividerType.WRAP){
             float startX,endX;
             if(TextUtils.isEmpty(label)){//隐藏label的情况
-                startX=(measuredWidth-maxTextWidth)/2-12;
+                startX=(measuredWidth-maxTextWidth)/2f-12;
             }else{
                 //todo 这个除以4是个什么情况
-                startX=(measuredWidth-maxTextWidth)/4-12;
+                startX=(measuredWidth-maxTextWidth)/4f-12;
             }
             if(startX<=0){//如果超过了view的边缘
                 startX=10;
@@ -285,6 +315,14 @@ public class WheelView extends View {
         }else{
             canvas.drawLine(0,firstLineY,measuredWidth,firstLineY,paintIndicator);
             canvas.drawLine(0,secondLineY,measuredWidth,secondLineY,paintIndicator);
+        }
+
+        //只显示选中项label文字的模式，并且label文字不为空，则进行绘制
+        if(!TextUtils.isEmpty(label)&&isCenterLabel){
+            //绘制文字，靠右并留出空隙
+            int drawRightContentStart=measuredWidth-getTextWidth(paintCenterText,label);
+            //todo 这里应该将label离右边距有点距离，距离多少该如何设置
+            canvas.drawText(label, drawRightContentStart,centerY,paintCenterText);
         }
 
         counter=0;
@@ -303,15 +341,71 @@ public class WheelView extends View {
                 float offsetCoefficient=(float)Math.pow(Math.abs(angle)/90f,2.2);
                 String contentText;
 
-                //只显示选中项label文字的模式，并且label文字不为空，则进行绘制
-                //我还不知道label是什么呢
-                if(!TextUtils.isEmpty(label)&&isCenterLabel){
-
+                //如果是label每项都显示的模式，并且item内容不为空，label也不为空
+                if(!isCenterLabel&&!TextUtils.isEmpty(label)&&!TextUtils.isEmpty(getContentText(visibles[counter]))){
+                    contentText=getContentText(visibles[counter])+label;
+                }else{
+                    contentText=getContentText(visibles[counter]);
                 }
 
+                //重新计算textSize
+                reMeasureTextSize(contentText);
+                //计算开始绘制的位置
+                measuredCenterContentStart(contentText);
+                measuredOutContentStart(contentText);
 
+                float translateY=(float)(radius-Math.sin(radian)*maxTextHeight/2-Math.cos(radian)*radius);
+                canvas.translate(0,translateY);
+                //canvas.scale(1.0f,(float)Math.sin(radian));
+                if(translateY<=firstLineY&&maxTextHeight+translateY>=firstLineY){
+                    //条目经过第一条线
+                    canvas.save();
+                    canvas.clipRect(0,0,measuredWidth,firstLineY-translateY);
+                    //todo 这里的scaleContent啥意思？？？
+                    canvas.scale(1.0f,(float)Math.sin(radian)*SCALE_CONTENT);
+                    canvas.drawText(contentText,drawOutContentStart,maxTextHeight,paintOuterText);
+                    canvas.restore();
+                    //todo 为什么要这主要做，剪切两次，写两次text，不同的scaleY
+                    //这里的10同样是Center_Conten_Offset
+                    canvas.save();
+                    canvas.clipRect(0,firstLineY-translateY,measuredWidth,itemHeight);
+                    canvas.scale(1.0f,(float)Math.sin(radian)*1.0f);
+                    canvas.drawText(contentText,drawCenterContentStart,maxTextHeight-10,paintCenterText);
+                    canvas.restore();
+                }else if(translateY<=secondLineY && maxTextHeight+translateY>=secondLineY){
+                    //条目经过第二条线
+                    canvas.save();
+                    canvas.clipRect(0,0,measuredWidth,secondLineY-translateY);
+                    canvas.scale(1.0f,(float)Math.sin(radian)*1.0f);
+                    canvas.drawText(contentText,drawCenterContentStart,maxTextHeight-10,paintCenterText);
+                    canvas.restore();
+                    canvas.save();
+                    canvas.clipRect(0,secondLineY-translateY,measuredWidth,itemHeight);
+                    canvas.scale(1.0f,(float)Math.sin(radian)*SCALE_CONTENT);
+                    canvas.drawText(contentText,drawOutContentStart,maxTextHeight,paintOuterText);
+                    canvas.restore();
+                }else if(translateY>=firstLineY &&maxTextHeight+translateY<=secondLineY){
+                    //中间条目，让文字居中
+                    float Y=maxTextHeight-10;//因为圆弧角换算的向下取值，导致角度稍微有点偏差，加上画笔的基线会偏上，因此需要偏移量修正一下
+                    canvas.drawText(contentText,drawCenterContentStart,Y,paintCenterText);
 
+                    //设置选中项
+                    selectedItem=preCurrentIndex-(itemVisible/2-counter);
+                }else{
+                    //其他条目
+                    canvas.save();
+                    canvas.clipRect(0,0,measuredWidth,itemHeight);
+                    canvas.scale(1.0f,(float)Math.sin(radian)*SCALE_CONTENT);
+                    //控制文字倾斜角度
+                    //todo setTextSkewX
+                    paintOuterText.setAlpha((int)((1-offsetCoefficient)*255));
+                    canvas.drawText(contentText,drawOutContentStart+textXOffset*offsetCoefficient,maxTextHeight,paintOuterText);
+                    canvas.restore();
+                }
+                canvas.restore();
+                paintCenterText.setTextSize(textSize);
             }
+            counter++;
         }
 
 
@@ -328,5 +422,199 @@ public class WheelView extends View {
             index=getLoopMappingIndex(index);
         }
         return index;
+    }
+
+    public int getTextWidth(Paint paint,String str){
+        int iRet=0;
+        if(str!=null&&str.length()>0){
+            int len=str.length();
+            float[] widths=new float[len];
+            //todo 这里直接getTextBounds或者measureText也行啊
+            paint.getTextWidths(str,widths);
+            for(int i=0;i<len;i++){
+                iRet+=(int)Math.ceil(widths[i]);
+            }
+        }
+        return iRet;
+    }
+    //重新设置文本的textSize好让内容能够完全展现
+    private void reMeasureTextSize(String contentText){
+        Rect rect=new Rect();
+        //todo 这里需不需要paint.measureText
+        paintCenterText.getTextBounds(contentText,0,contentText.length(),rect);
+        int width=rect.width();
+        int size=textSize;
+        while(width>measuredWidth){
+            size--;
+            paintCenterText.setTextSize(textSize);
+            paintCenterText.getTextBounds(contentText,0,contentText.length(),rect);
+            width=rect.width();
+        }
+        paintOuterText.setTextSize(size);
+    }
+    private void measuredCenterContentStart(String content){
+        Rect rect=new Rect();
+        paintCenterText.getTextBounds(content,0,content.length(),rect);
+        switch (mGravity){
+            case Gravity.CENTER://显示内容居中
+                //todo 这个isOptions有啥用
+                if(isOptions||label==null||label.equals("")||!isCenterLabel){
+                    drawCenterContentStart=(int)((measuredWidth-rect.width()*0.5f));
+                }else{//只显示中间label时，时间选择器内容偏左一点，留出空间绘制单位标签
+                    //todo 这个0.25也是拍脑袋想出来的么
+                    drawCenterContentStart=(int)((measuredWidth-rect.width())*0.25f);
+                }
+                break;
+            case Gravity.LEFT:
+                drawCenterContentStart=0;
+                break;
+            case Gravity.RIGHT://添加偏移量
+                //todo 这里的10，完全是为了给右边留空，随手写的
+                drawCenterContentStart=measuredWidth-rect.width()-10;
+                break;
+        }
+    }
+    //todo 这个方法和上面的方法完全一样，只是drawCenterContentStart换成了drawOutContentStart
+    private void measuredOutContentStart(String content){
+        Rect rect=new Rect();
+        paintCenterText.getTextBounds(content,0,content.length(),rect);
+        switch (mGravity){
+            case Gravity.CENTER://显示内容居中
+                if(isOptions||label==null||label.equals("")||!isCenterLabel){
+                    drawOutContentStart=(int)((measuredWidth-rect.width()*0.5f));
+                }else{//只显示中间label时，时间选择器内容偏左一点，留出空间绘制单位标签
+                    drawOutContentStart=(int)((measuredWidth-rect.width())*0.25f);
+                }
+                break;
+            case Gravity.LEFT:
+                drawOutContentStart=0;
+                break;
+            case Gravity.RIGHT://添加偏移量
+                drawOutContentStart=measuredWidth-rect.width()-10;
+                break;
+        }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        boolean eventConsumed=gestureDetector.onTouchEvent(event);
+        boolean isIgnore=false;//超过边界滑动时，不再绘制UI
+
+        float top=-initPosition*itemHeight;
+        float bottom=(adapter.getItemCount()-1-initPosition)*itemHeight;
+        float ratio=0.25f;
+        switch (event.getAction()){
+            case MotionEvent.ACTION_DOWN:
+                startTime=System.currentTimeMillis();
+                cancelFuture();
+                previousY=event.getRawY();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                float dy=previousY-event.getRawY();
+                previousY=event.getRawY();
+                totalScrollY=totalScrollY+dy;
+
+                //normal mode
+                if(!isLoop){
+                    if((totalScrollY-itemHeight*ratio<top&&dy<0)||(totalScrollY+itemHeight*ratio>bottom&&dy>0)){
+                        //ps这里是再滑动0.25个itemHeight就超过边界了，ratio就是这个意思
+                        //快滑动到边界了，设置已滑动到边界的标志
+                        //todo 这里把dy减掉什么意思？不让继续滑动了么
+                        totalScrollY-=dy;
+                        isIgnore=true;
+                    }else{
+                        isIgnore=false;
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+            default:
+                if(!eventConsumed){//未消费掉事件
+                    float y=event.getY();
+                    double L=Math.acos((radius-y)/radius)*radius;
+                    //item0有一半在不可见区域，所以需要加上itemHeight/2
+                    //todo 下面这三行什么意思，我实在没看懂
+                    int circlePosition=(int)((L+itemHeight/2)/itemHeight);
+                    float extraOffset=(totalScrollY%itemHeight);
+                    //已经滑动的弧长值
+                    mOffset=(int)((circlePosition-itemVisible/2)*itemHeight-extraOffset);
+                    if((System.currentTimeMillis()-startTime)>120){
+                        //处理拖拽事件
+                        smoothScroll(ACTION.DAGGLE);
+                    }else{
+                        //处理点击事件
+                        smoothScroll(ACTION.CLICK);
+                    }
+                }
+        }
+        if(!isIgnore&&event.getAction()!=MotionEvent.ACTION_DOWN){
+            invalidate();
+        }
+        return true;
+    }
+    public void cancelFuture(){
+        if(mFuture!=null&&!mFuture.isCancelled()){
+            mFuture.cancel(true);
+            mFuture=null;
+        }
+    }
+    public void smoothScroll(ACTION action){//平滑滚动的实现
+        cancelFuture();
+        if(action==ACTION.FLING||action==ACTION.DAGGLE){
+            mOffset=(int)(totalScrollY%itemHeight);
+            if((float)mOffset>itemHeight/2.0f){//如果超过item高度的一半，则滚动到下一个item去
+                mOffset=(int)(itemHeight-(float)mOffset);
+            }else{
+                mOffset=-mOffset;
+            }
+        }
+
+        mFuture=mExecutor.scheduleWithFixedDelay(new SmoothScrollTimerTask(this,mOffset),0,10, TimeUnit.MICROSECONDS);
+    }
+    public void setTotalScrollY(float totalScrollY){
+        this.totalScrollY=totalScrollY;
+    }
+    public float getTotalScrollY(){
+        return totalScrollY;
+    }
+    public boolean isLoop(){
+        return isLoop;
+    }
+    public float getItemHeight(){
+        return itemHeight;
+    }
+    public int getInitPosition(){
+        return initPosition;
+    }
+    @Override
+    public Handler getHandler() {
+        return handler;
+    }
+    public int getItemCount(){
+        return adapter!=null?adapter.getItemCount():0;
+    }
+    public final void setOnItemSelectedListener(OnItemSelectedListener onItemSelectedListener){
+        this.onItemSelectedListener=onItemSelectedListener;
+    }
+    public final int getCurrentItem(){
+        if(adapter==null) return 0;
+        if(isLoop&&(selectedItem<0||selectedItem>=adapter.getItemCount())){
+            return Math.max(0,Math.min(Math.abs(selectedItem-adapter.getItemCount()),adapter.getItemCount()-1));
+        }
+        return Math.max(0,Math.min(selectedItem,adapter.getItemCount()-1));
+    }
+    public final void onItemSelected(){
+        if(onItemSelectedListener!=null){
+            postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    onItemSelectedListener.onItemSelected(getCurrentItem());
+                }
+            },200);
+        }
+    }
+    public final void scrollBy(float velocityY){//滚动惯性的实现
+        cancelFuture();
+        mFuture=mExecutor.scheduleWithFixedDelay(new InertiaTimerTask(this,velocityY),0,VELOCITY_FLING,TimeUnit.MILLISECONDS);
     }
 }

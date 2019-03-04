@@ -21,10 +21,10 @@ public class MessageHandler extends Handler {
                 wheelView.invalidate();
                 break;
             case WHAT_SMOOTH_SCROLL:
-                //todo wheelview.smoothScroll
+                wheelView.smoothScroll(WheelView.ACTION.FLING);
                 break;
             case WHAT_ITEM_SELECTED:
-                //todo wheelview.onItemSelected
+                wheelView.onItemSelected();
                 break;
         }
     }
