@@ -1,5 +1,6 @@
 package com.example.mycustomview.timer;
 
+import com.example.mycustomview.utils.LogUtil;
 import com.example.mycustomview.view.WheelView;
 
 import java.util.TimerTask;
@@ -49,6 +50,5 @@ public class SmoothScrollTimerTask extends TimerTask {
             wheelView.getHandler().sendEmptyMessage(MessageHandler.WHAT_INVALIDATE_LOOP_VIEW);
             realTotalOffset=realTotalOffset-realOffset;
         }
-
     }
 }

@@ -2,6 +2,7 @@ package com.example.mycustomview.timer;
 
 import android.support.v7.view.menu.MenuWrapperFactory;
 
+import com.example.mycustomview.utils.LogUtil;
 import com.example.mycustomview.view.WheelView;
 
 import java.util.TimerTask;
