@@ -62,6 +62,8 @@
                 android:resource="@xml/file_paths" />
         </provider>
         <activity android:name=".activity.WheelViewAct">
+        </activity>
+        <activity android:name=".activity.RainEffectAct">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
